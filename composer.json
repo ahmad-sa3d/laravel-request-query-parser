@@ -1,0 +1,44 @@
+{
+    "name": "saad/request-query-parser",
+    "description": "This library will load query relation and select fields according to request include query string values",
+    "keywords": [
+        "request",
+        "fractal",
+        "spatie",
+        "includes",
+        "league fractal",
+        "request parser",
+        "request query parser",
+        "query",
+        "eloquent",
+        "laravel",
+        "api",
+        "transformers",
+        "transform"
+    ],
+    "require": {
+        "saad/fractal": "^1.1"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ahmed Saad",
+            "email": "a7mad.sa3d.2014@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "Saad\\QueryParser\\": "src"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+            ],
+
+            "aliases": {
+            }
+        }
+    }
+}
