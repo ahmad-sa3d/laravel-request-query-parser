@@ -1,13 +1,12 @@
 <?php
 
 /**
- * Model Preparer Contract
+ * @package  saad/request-query-parser
  *
- * @package saad\request-query-loader Laravel Package
- * @author Ahmed Saad <a7mad.sa3d.2014>
- * @version 1.0.0
- * @license [<url>] MIT
+ * @author Ahmed Saad <a7mad.sa3d.2014@gmail.com>
+ * @license MIT MIT
  */
+
 namespace Saad\QueryParser\Contracts;
 
 interface ModelPreparerContract {

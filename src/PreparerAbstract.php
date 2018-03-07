@@ -4,10 +4,10 @@
  * Abstract Prepare class
  * this abstract class should be extened by every Model preparer class
  *
- * @package saad\laravel-query-loader
+ * @package saad/request-query-parser
  * @author Ahmed Saad <a7mad.sa3d.2014>
  * @version 1.0.0
- * @license [<url>] MIT
+ * @license MIT MIT
  *
  * @property string $table table name
  * @property string $model model class name
@@ -76,7 +76,7 @@ abstract class PreparerAbstract implements ModelPreparerContract {
 	 * @param  string $context_model_name Context name (basename)
 	 * @return array                     context info
 	 */
-	final public function getInfo($context_model_name)
+	final public function getInfo($context_model_name, $context_info_key = null)
 	{
 		if (is_null($context_model_name)) {
 			return [];
@@ -86,7 +86,11 @@ abstract class PreparerAbstract implements ModelPreparerContract {
 			throw new \InvalidArgumentException("no context info exists for {$context_model_name}");
 		}
 
-		return $this->in_context_info[$context_model_name];
+		if ($context_info_key && !array_key_exists($context_info_key, $this->in_context_info[$context_model_name])) {
+			throw new \InvalidArgumentException("no context info exists for {$context_model_name} with the key of {$context_info_key}");
+		}
+
+		return $context_info_key ? $this->in_context_info[$context_model_name][$context_info_key] : $this->in_context_info[$context_model_name];
 	}
 	
 	/**
@@ -97,13 +101,16 @@ abstract class PreparerAbstract implements ModelPreparerContract {
 	 * @param  string $namespace     		namespace for nesting calls needed to prefixed for FractalRequestParser check
 	 * @return QueryBuilder                	Prepared Governorate Query
 	 */
-	final public function prepare($query = null, $context_model = null, $namespace = null)
+	final public function prepare($query = null, $context_model = null, $namespace = null, $context_info_key = null)
 	{
+		// Refresh Parser if neede, this is important while Unit Testing
+		$this->parser->refreshIfNeeded();
+
 		if (is_null($query)) {
 			$query = $this->model::query();
 		}
 
-        $namespace = $this->getParserNamespace($namespace, $context_model);
+        $namespace = $this->getParserNamespace($namespace, $context_model, $context_info_key);
 
         $this->selectBasicFields($query);
 
@@ -112,6 +119,14 @@ abstract class PreparerAbstract implements ModelPreparerContract {
         	$this->extendPrepare($query, $namespace);
         }
 
+        // dump($this->parser->getOptions(trim($namespace, '.')));
+        $clean_namespace = trim($namespace, '.');
+        // Check Order
+        $this->checkOrder($query, $clean_namespace);
+
+		// Check wheres
+        $this->checkWheres($query, $clean_namespace);
+		
 		// return Resulted Query
 		return $query;
 	}
@@ -122,12 +137,12 @@ abstract class PreparerAbstract implements ModelPreparerContract {
 	 * @param  string $namespace current context namespace
 	 * @return string            Latest namespace
 	 */
-	protected function getParserNamespace($namespace, $context_model)
+	protected function getParserNamespace($namespace, $context_model, $context_info_key)
 	{
-		$context_info = $this->getInfo($context_model);
+		$context_info = $this->getInfo($context_model, $context_info_key);
 
 		if ($context_info) {
-			return $namespace . $context_info['context_relation_name'] . '.';
+			return $namespace . snake_case($context_info['context_relation_name']) . '.';
 		} else {
 			return $namespace;
 		}
@@ -145,5 +160,53 @@ abstract class PreparerAbstract implements ModelPreparerContract {
         if(is_a($query, HasMany::class)) {
         	$query->addSelect($query->getQualifiedForeignKeyName());
         }
+	}
+
+	private function checkOrder($query, $namespace) {
+		if ($orders = $this->parser->getOption($namespace, 'order')) {
+			foreach ($orders as $order) {
+				$order_by = $order[0];
+				$direction = count($order) > 1 ? $order[1] : 'ASC';
+				$query->orderBy($order_by, $direction);
+			}
+		}
+	}
+
+	/**
+	 * Check Where Clauses
+	 * @param  Builder $query     Query Builder
+	 * @param  string|null $namespace
+	 */
+	private function checkWheres($query, $namespace) {
+		if ($wheres = $this->parser->getOption($namespace, 'where')) {
+			foreach ($wheres as $clause) {
+				$field = $clause[0] ?: null;
+
+				if ($field) {
+					switch (count($clause)) {
+						case '1':
+							$value = null;
+							break;
+
+						case '2':
+							$operator = '=';
+							$value = $clause[1];
+							break;
+
+						case '3':
+						default:
+							$operator = $clause[1];
+							$value = $clause[2];
+							break;
+					}
+
+					if (!$value) {
+						$query->whereNotNull($field);
+					} else {
+						$query->where($field, $operator, $value);
+					}
+				}
+			}
+		}
 	}
 }

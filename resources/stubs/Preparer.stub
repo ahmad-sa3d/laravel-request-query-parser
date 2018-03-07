@@ -1,0 +1,59 @@
+<?php
+
+/**
+ * @package  saad/request-query-parser
+ *
+ * @author Ahmed Saad <a7mad.sa3d.2014@gmail.com>
+ * @license MIT MIT
+ * @date 	$TIME$
+ */
+
+namespace $NAMESPACE$;
+
+use Saad\QueryParser\PreparerAbstract;
+use Saad\QueryParser\RequestQueryParser;
+
+class $MODEL$Preparer extends PreparerAbstract {
+
+	// protected $table = '';
+
+	// protected $model = '';
+
+	/**
+	 * Context info
+	 * @var array
+	 */
+	protected $in_context_info = [
+		// Governorate has many of $MODEL$
+		//'Governorate' => [
+		//	'context_relation_name' => '$LOWER_MODEL$es',
+		//	'context_relation_type' => 'many',
+		//	'context_foreign' => null,
+		//],
+		
+		// Farm belongs to a $MODEL$
+		//'Farm' => [
+		//	'context_relation_name' => '$LOWER_MODEL$',
+		//	'context_relation_type' => 'one',
+		//	'context_foreign' => '$LOWER_MODEL$_id',
+		//],
+	];
+	
+	/**
+	 * Extend Prepare Method
+	 * @param  Builder $query     Eloquent  Quey Builder
+	 * @param  string $namespace Current FractalParser namespace
+	 */
+	protected function extendPrepare($query, $namespace)
+	{
+		// Prepare Query
+		//if ($this->parser->includesHas($namespace . 'name')) {
+        //    $query->addSelect('$LOWER_MODEL$es.name_en', '$LOWER_MODEL$es.name_ar');
+        //}
+		
+		//Load Relations
+        //if ($this->parser->includesHas($namespace . 'governorate')) {
+        //	RequestQueryParser::loadOnContext(Governorate::class, $query, $namespace);
+        //}
+	}
+}

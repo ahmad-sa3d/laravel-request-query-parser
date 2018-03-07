@@ -5,12 +5,13 @@
  *
  * this static class used to prepare and load query
  *
- * @package saad\request-query-loader Laravel Package
+ * @package saad/request-query-parser Laravel Package
  * @author Ahmed Saad <a7mad.sa3d.2014>
  * @version 1.0.0
- * @license [<url>] MIT
+ * @license MIT MIT
  *
  */
+
 namespace Saad\QueryParser;
 
 use Saad\QueryParser\Contracts\QueryParserContract;
@@ -51,11 +52,12 @@ class RequestQueryParser implements QueryParserContract {
 	/**
 	 * Prepare Given Model Query
 	 * @param  string $class_full_name Full Model Name
-	 * @return QueryBuilder                  ModelQueryBuilder
+	 * @param  Builder $query existing Model Query
+	 * @return Builder                  Model Query Builder
 	 */
-	public static function prepare($class_full_name) {
+	public static function prepare($class_full_name, $query = null) {
 		$preparer = self::getPreparerFor($class_full_name);
-		return $preparer->prepare();
+		return $preparer->prepare($query);
 	}
 
 	/**
@@ -65,23 +67,24 @@ class RequestQueryParser implements QueryParserContract {
 	 * @param $relationship_name_of_model_on_context  Relationship method name of the model on the context
 	 * @return Eloquent|Builder                  context
 	 */
-	public static function loadOnContext($model_class_full_name, $context, $namespace = null) {
+	public static function loadOnContext($model_class_full_name, $context, $namespace = null, $context_info_key = null) {
 
 		$context_class = class_basename($context->getModel());
 		$preparer = self::getPreparerFor($model_class_full_name);
-		$context_info = $preparer->getInfo($context_class);
+		$context_info = $preparer->getInfo($context_class, $context_info_key);
 		$parser = FractalRequestParser::getInstance();
 		$method = self::getLoadingMethod($context);
 
-        if ($parser->includesHas($namespace . $context_info['context_relation_name'])) {
+        if ($parser->includesHas($namespace . $context_info['context_relation_name']) || $parser->includesHas($namespace . snake_case($context_info['context_relation_name']))) {
             // Add Context Foreign Key to Select List
             if (isset($context_info['context_foreign'])) {
+            	// dd($context_info['context_foreign']);
                 $context->addSelect($context_info['context_foreign']);
             }
 
             // Eager load relation on context
-            $context->$method([$context_info['context_relation_name'] => function ($query) use ($preparer, $context_class, $namespace) {
-            	$preparer->prepare($query, $context_class, $namespace);
+            $context->$method([$context_info['context_relation_name'] => function ($query) use ($preparer, $context_class, $namespace, $context_info_key) {
+            	$preparer->prepare($query, $context_class, $namespace, $context_info_key);
             }]);
         }
 
