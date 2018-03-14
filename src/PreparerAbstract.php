@@ -55,18 +55,18 @@ abstract class PreparerAbstract implements ModelPreparerContract {
 	{
 		$this->parser = FractalRequestParser::getInstance();
 
-		// Set table
-		if (!$this->table ) {
-			$this->table = strtolower(str_plural(str_replace('Preparer', '', class_basename(get_called_class()))));
-		}
-
 		// Set Model
 		if (!$this->model ) {
-			$this->model = '\App\\' . ucfirst(str_singular($this->table));
+			$this->model = '\App\\' . ucfirst(str_replace('Preparer', '', class_basename(get_called_class())));
 		}
 
 		if (!class_exists($this->model)) {
 			throw new \RuntimeException("{$this->model} Model Not Found");
+		}
+
+		// Set table
+		if (!$this->table ) {
+			$this->table = strtolower(str_plural(snake_case(class_basename($this->model))));
 		}
 	}
 
@@ -126,6 +126,12 @@ abstract class PreparerAbstract implements ModelPreparerContract {
 
 		// Check wheres
         $this->checkWheres($query, $clean_namespace);
+
+        // Check Limit
+        $this->checkLimit($query, $clean_namespace);
+
+        // Check Offset
+        $this->checkOffset($query, $clean_namespace);
 		
 		// return Resulted Query
 		return $query;
@@ -162,12 +168,45 @@ abstract class PreparerAbstract implements ModelPreparerContract {
         }
 	}
 
+	/**
+	 * Check Order
+	 * @param  Builder $query     Query Builder
+	 * @param  string $namespace Namespace
+	 */
 	private function checkOrder($query, $namespace) {
 		if ($orders = $this->parser->getOption($namespace, 'order')) {
 			foreach ($orders as $order) {
 				$order_by = $order[0];
 				$direction = count($order) > 1 ? $order[1] : 'ASC';
 				$query->orderBy($order_by, $direction);
+			}
+		}
+	}
+
+	/**
+	 * Check Limit
+	 * @param  Builder $query     Query Builder
+	 * @param  string $namespace Namespace
+	 */
+	private function checkLimit($query, $namespace) {
+		if ($limit = $this->parser->getOption($namespace, 'limit')) {
+			$limit = array_pop($limit);
+			if (count($limit) > 0 && is_numeric($limit[0])) {
+				$query->take($limit[0]);
+			}
+		}
+	}
+
+	/**
+	 * Check Offset
+	 * @param  Builder $query     Query Builder
+	 * @param  string $namespace Namespace
+	 */
+	private function checkOffset($query, $namespace) {
+		if ($offset = $this->parser->getOption($namespace, 'offset')) {
+			$offset = array_pop($offset);
+			if (count($offset) > 0 && is_numeric($offset[0])) {
+				$query->skip($offset[0]);
 			}
 		}
 	}
