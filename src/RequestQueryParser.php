@@ -67,25 +67,36 @@ class RequestQueryParser implements QueryParserContract {
 	 * @param $relationship_name_of_model_on_context  Relationship method name of the model on the context
 	 * @return Eloquent|Builder                  context
 	 */
-	public static function loadOnContext($model_class_full_name, $context, $namespace = null, $context_info_key = null) {
+	public static function loadOnContext($model_class_full_name, $context, $namespace = null, $context_info_key = null, $count = false) {
 
 		$context_class = class_basename($context->getModel());
 		$preparer = self::getPreparerFor($model_class_full_name);
 		$context_info = $preparer->getInfo($context_class, $context_info_key);
 		$parser = FractalRequestParser::getInstance();
-		$method = self::getLoadingMethod($context);
+		$method = self::getLoadingMethod($context, $count);
 
-        if ($parser->includesHas($namespace . $context_info['context_relation_name']) || $parser->includesHas($namespace . snake_case($context_info['context_relation_name']))) {
+		$query_key = $count ? $context_info['context_relation_name'] . '_count' : $context_info['context_relation_name'];
+
+        if ($parser->includesHas($namespace . $query_key) || $parser->includesHas($namespace . snake_case($query_key))) {
             // Add Context Foreign Key to Select List
             if (isset($context_info['context_foreign'])) {
             	// dd($context_info['context_foreign']);
                 $context->addSelect($context_info['context_foreign']);
             }
 
-            // Eager load relation on context
-            $context->$method([$context_info['context_relation_name'] => function ($query) use ($preparer, $context_class, $namespace, $context_info_key) {
-            	$preparer->prepare($query, $context_class, $namespace, $context_info_key);
-            }]);
+            // If Counting relation Only
+            if ($count) {
+            	if ($method == 'withCount') {
+	            	$context->$method($context_info['context_relation_name']);
+            	} else {
+            		$context->{snake_case($query_key)} = $context->{$context_info['context_relation_name']}()->count();
+            	}
+            } else {
+	            // Eager load relation on context
+	            $context->$method([$context_info['context_relation_name'] => function ($query) use ($preparer, $context_class, $namespace, $context_info_key) {
+	            	$preparer->prepare($query, $context_class, $namespace, $context_info_key);
+	            }]);
+            }
         }
 
         return $context;	
@@ -118,11 +129,11 @@ class RequestQueryParser implements QueryParserContract {
 	 * @param  Eloquent|QueryBuilder $context Context
 	 * @return string          load OR with
 	 */
-	protected static function getLoadingMethod($context) {
+	protected static function getLoadingMethod($context, $is_count) {
 		if (in_array('Illuminate\Contracts\Support\Jsonable', class_implements($context))) {
             $method = 'load';
         } else {
-            $method = 'with';
+            $method = $is_count ? 'withCount' : 'with';
         }
 
         return $method;
