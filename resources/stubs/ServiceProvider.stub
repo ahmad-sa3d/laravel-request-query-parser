@@ -1,0 +1,4 @@
+		
+		# Bind $FULL_MODEL$ Preparer To Service Container
+        \Saad\QueryParser\RequestQueryParser::registerModel(\$FULL_MODEL$::class, \$NAMESPACE$\$MODEL$Preparer::class);
+        # $FULL_MODEL$ Preparer End
