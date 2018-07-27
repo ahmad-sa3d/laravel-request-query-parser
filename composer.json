@@ -1,5 +1,5 @@
 {
-    "name": "saad/request-query-parser",
+    "name": "saad/laravel-request-query-parser",
     "description": "This library will load query relation and select fields according to request include query string values",
     "keywords": [
         "request",
