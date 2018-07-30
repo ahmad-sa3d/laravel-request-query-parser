@@ -46,7 +46,7 @@ class RequestQueryParser implements QueryParserContract {
 			throw new \InvalidArgumentException(__METHOD__ . "class '{$registerar_class}' doesnot exists");
 		}
 
-		self::$registered_models[$class_full_name] = new $registerar_class();
+        self::$registered_models[$class_full_name] = $registerar_class;
 	}
 
 	/**
@@ -112,7 +112,12 @@ class RequestQueryParser implements QueryParserContract {
 			throw new \RuntimeException(__METHOD__ . " you have to register model preparer for '{$class_full_name}'");
 		}
 
-		return self::$registered_models[$class_full_name];
+		// If Still string, convert it to object
+		if (is_string(self::$registered_models[$class_full_name])) {
+            self::$registered_models[$class_full_name] = new self::$registered_models[$class_full_name];
+        }
+
+        return self::$registered_models[$class_full_name];
 	}
 
 	/**
