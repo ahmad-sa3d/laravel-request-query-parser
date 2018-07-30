@@ -24,14 +24,21 @@ class $MODEL$Preparer extends PreparerAbstract {
 	 * @var array
 	 */
 	protected $in_context_info = [
-		// Governorate has many of $MODEL$
+	
+		/**-------------------------------
+		 | Governorate has many of $MODEL$
+		 |*-------------------------------
+		 */
 		//'Governorate' => [
 		//	'context_relation_name' => '$LOWER_MODEL$es',
 		//	'context_relation_type' => 'many',
 		//	'context_foreign' => null,
 		//],
 		
-		// Farm belongs to a $MODEL$
+		/**-------------------------------
+		 | Farm belongs to a $MODEL$
+		 |*-------------------------------
+		 */
 		//'Farm' => [
 		//	'context_relation_name' => '$LOWER_MODEL$',
 		//	'context_relation_type' => 'one',
@@ -41,7 +48,7 @@ class $MODEL$Preparer extends PreparerAbstract {
 	
 	/**
 	 * Extend Prepare Method
-	 * @param  Builder $query     Eloquent  Quey Builder
+	 * @param  Builder $query     Eloquent  Query Builder
 	 * @param  string $namespace Current FractalParser namespace
 	 */
 	protected function extendPrepare($query, $namespace)
@@ -51,7 +58,7 @@ class $MODEL$Preparer extends PreparerAbstract {
         //    $query->addSelect('$LOWER_MODEL$es.name_en', '$LOWER_MODEL$es.name_ar');
         //}
 		
-		//Load Relations
+		// Load Relations
         //if ($this->parser->includesHas($namespace . 'governorate')) {
         //	RequestQueryParser::loadOnContext(Governorate::class, $query, $namespace);
         //}
