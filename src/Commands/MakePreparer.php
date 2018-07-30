@@ -92,7 +92,7 @@ class MakePreparer extends BaseMakeCommand
      */
     protected function getBindPattern() {
         $skipped_full_model = str_replace('\\', '\\\\', $this->full_model);
-        return "/#\sBind\s".$skipped_full_model."\sPreparer.*?#\s".$skipped_full_model."\sPreparer\sEnd/smu";
+        return "/#\sRegister\s".$skipped_full_model."\sPreparer.*?#\s".$skipped_full_model."\sPreparer\sEnd/smu";
     }
 
     /**
